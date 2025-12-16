@@ -1,9 +1,10 @@
 name = "KitAMR"
 uuid = "c7589248-7317-493e-9871-fc2fc0963dfd"
-authors = ["CFDML and contributors"]
 version = "0.1.0"
+authors = ["CFDML and contributors"]
 
 [deps]
+AbstractTrees = "1520ce14-60c1-5f80-bbc7-55ef81b5835c"
 CEnum = "fa961155-64e5-5f13-b03f-caf6b980ea82"
 CSV = "336ed68f-0bac-5ca0-87d4-7b16caf5d00b"
 DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
@@ -30,6 +31,7 @@ UUIDs = "cf7118a7-6976-5b1a-9a39-7adc72f591a4"
 WriteVTK = "64499a7a-5c06-52f2-abe2-ccb03c286192"
 
 [compat]
+AbstractTrees = "0.4.5"
 CEnum = "0.4, 0.5"
 CSV = "0.10.15"
 DataFrames = "1.7.0"

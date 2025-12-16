@@ -98,6 +98,12 @@ function save_boundary_result!(ib::AbstractBoundary,ps_data,solid_neighbor::Soli
     push!(boundary_results[ps_data.bound_enc].normal,n)
     push!(boundary_results[ps_data.bound_enc].ps_solutions,Boundary_PS_Solution(abs.(aux_prim1-aux_prim2),df_diff,aux_p))
 end
+function save_boundary_result!(ib::AbstractBoundary,ps_data::PS_Data{DIM,NDF},boundary_results::Vector{Boundary_Solution},amr::AMR{DIM,NDF}) where{DIM,NDF}
+    solid_neighbors = findall(x->isa(x[1],SolidNeighbor),ps_data.neighbor.data)
+    for i in solid_neighbors
+        save_boundary_result!(ib,ps_data,ps_data.neighbor.data[i][1],boundary_results,amr)
+    end
+end
 function solid_cell_index_encoder!(solid_cell_index::Vector{Int},now_index::Int)
     id = findfirst(x->x==0,solid_cell_index)
     isnothing(id) && (@error `A larger SOLID_CELL_ID_NUM is needed!`)

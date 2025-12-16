@@ -94,6 +94,12 @@ function save_boundary_result!(ib::AbstractBoundary,ps_data,solid_neighbor::Soli
         @suppress write_vs_VTK(aux_df,vs_data,amr,dir_path*"/"*string(ps_data.midpoint)*string(n),["df"],fieldvalues_fn)
     end
 end
+function save_boundary_result!(ib::AbstractBoundary,ps_data::PS_Data{DIM,NDF},boundary_results::Vector{Boundary_Solution},amr::AMR{DIM,NDF}) where{DIM,NDF}
+    solid_neighbors = findall(x->isa(x[1],SolidNeighbor),ps_data.neighbor.data)
+    for i in solid_neighbors
+        save_boundary_result!(ib,ps_data,ps_data.neighbor.data[i][1],boundary_results,amr)
+    end
+end
 function solid_cell_index_encoder!(solid_cell_index::Vector{Int},now_index::Int)
     id = findfirst(x->x==0,solid_cell_index)
     isnothing(id) && (@error `A larger SOLID_CELL_ID_NUM is needed!`)
@@ -638,13 +644,6 @@ function update_solid_neighbor!(::AbstractFluxType,ps_data::PS_Data{DIM,NDF},sol
     end
     cvc_correction!(aux_df,M,solid_neighbor,amr)
     @. solid_neighbor.vs_data.df = aux_df+(aux_df-ib_df)/dxL*dxR
-    for i in 1:vs_data.vs_num        
-        if vs_data.midpoint[i,dir]*rot<0. && Θ[i]==1.
-            for j in 1:NDF
-                vs_data.sdf[i,j,dir] = vanleer((aux_df[i,j]-(aux_df[i,j]-ib_df[i,j])/dxL*(dxL-dxR)-vs_data.df[i,j])/(-rot*dxL),vs_data.sdf[i,j,dir])
-            end
-        end
-    end
     solid_neighbor.w = calc_w0(vs_data.midpoint,solid_neighbor.vs_data.df,vs_data.weight,global_data)
     solid_neighbor.sw[:,dir] .= (solid_neighbor.w-ps_data.w)./(solid_neighbor.midpoint[dir]-ps_data.midpoint[dir])
 end

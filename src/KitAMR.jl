@@ -7,10 +7,8 @@ using LinearAlgebra
 using Parameters
 using SpecialFunctions
 using StaticArrays
-# using PythonCall
 using Suppressor
 using WriteVTK
-using Documenter
 using Reexport
 using CSV
 using DataFrames
@@ -37,6 +35,8 @@ include("IO/types.jl")
 include("IO/IO.jl")
 include("connectivity.jl")
 include("boundary/boundary.jl")
+# include("boundary/boundary_noncvc.jl")
+# include("boundary/boundary_nonupwind.jl")
 include("adaptive.jl")
 include("neighbor.jl")
 include("ghost.jl")
@@ -45,9 +45,9 @@ include("velocity_space/vs_adaptive.jl")
 include("initialize.jl")
 include("partition.jl")
 include("slope.jl")
-# include("boundary/maxwellian.jl")
 include("flux/flux.jl")
 include("iterate.jl")
+# include("../example/cylinder/iterate_nonupwind.jl")
 include("finalize.jl")
 
 # const np = Ref{Py}()

@@ -1,7 +1,7 @@
 using KitAMR,MPI
 MPI.Init()
 
-config = KitAMR.read_config("configure_convergence_64_v40.txt")
+config = KitAMR.read_config("./example/convergence_vs/configure_convergence_64_v40.txt")
 ps4est,amr = KitAMR.init(config);
 max_sim_time = 20.
 nt = max_sim_time/amr.global_data.status.Δt+1.0 |> floor |> Int
@@ -23,7 +23,7 @@ KitAMR.save_result(ps4est,amr)
 KitAMR.finalize!(ps4est,amr)
 MPI.Barrier(MPI.COMM_WORLD)
 
-config = KitAMR.read_config("configure_convergence_64_v60.txt")
+config = KitAMR.read_config("./example/convergence_vs/configure_convergence_64_v60.txt")
 ps4est,amr = KitAMR.init(config);
 max_sim_time = 20.
 nt = max_sim_time/amr.global_data.status.Δt+1.0 |> floor |> Int
@@ -45,7 +45,7 @@ KitAMR.save_result(ps4est,amr)
 KitAMR.finalize!(ps4est,amr)
 MPI.Barrier(MPI.COMM_WORLD)
 
-config = KitAMR.read_config("configure_convergence_64_v80.txt")
+config = KitAMR.read_config("./example/convergence_vs/configure_convergence_64_v80.txt")
 ps4est,amr = KitAMR.init(config);
 KitAMR.listen_for_save!()
 max_sim_time = 20.
@@ -69,7 +69,7 @@ KitAMR.finalize!(ps4est,amr)
 MPI.Barrier(MPI.COMM_WORLD)
 
 
-config = KitAMR.read_config("configure_convergence_64_v100.txt")
+config = KitAMR.read_config("./example/convergence_vs/configure_convergence_64_v100.txt")
 ps4est,amr = KitAMR.init(config);
 max_sim_time = 20.
 nt = max_sim_time/amr.global_data.status.Δt+1.0 |> floor |> Int
@@ -91,7 +91,7 @@ KitAMR.save_result(ps4est,amr)
 KitAMR.finalize!(ps4est,amr)
 MPI.Barrier(MPI.COMM_WORLD)
 
-config = KitAMR.read_config("configure_convergence_64_v200.txt")
+config = KitAMR.read_config("./example/convergence_vs/configure_convergence_64_v200.txt")
 ps4est,amr = KitAMR.init(config);
 max_sim_time = 20.
 nt = max_sim_time/amr.global_data.status.Δt+1.0 |> floor |> Int

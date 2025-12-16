@@ -386,7 +386,9 @@ function save_result(ps4est::Ptr{p8est_t},amr::AMR{DIM,NDF};dir_path="") where{D
         !isdir(dir_path*"vtk/")&&mkpath(dir_path*"vtk/")
     end
     MPI.Barrier(MPI.COMM_WORLD)
+    cd(dir_path)
     p4est_save_ext("p",ps4est,Cint(0),Cint(0))
+    cd(pro_path)
     if rank==0
         size = MPI.Comm_size(MPI.COMM_WORLD)
         solverset = SolverSet(ConfigureForSave(config),size)

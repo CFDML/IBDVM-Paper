@@ -369,6 +369,5 @@ function init(config::Dict)
     initialize_neighbor_data!(ps4est, amr)
     initialize_solid_neighbor!(amr)
     initialize_faces!(ps4est, amr)
-    # ib_ghost_check!(amr)
     return (ps4est, amr)
 end
