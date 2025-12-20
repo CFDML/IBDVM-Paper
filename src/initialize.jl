@@ -313,8 +313,8 @@ function pre_refine!(ps4est::P_pxest_t,global_data::Global_Data)
         IB_pre_ps_refine!(ps4est,global_data)
         pre_ps_coarsen!(ps4est;recursive=1)
     end
-    AMR_partition(ps4est)
     pre_ps_balance!(ps4est)
+    AMR_partition(ps4est)
 end
 function init_ps!(ps4est::P_pxest_t,global_data::Global_Data{DIM,NDF}) where{DIM,NDF}
     fp = PointerWrapper(ps4est)
