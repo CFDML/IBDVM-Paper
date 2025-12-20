@@ -44,9 +44,7 @@ end
 mutable struct UDF
     static_ps_refine_flag::Function
     dynamic_ps_refine_flag::Function
-    static_ps_coarsen_flag::Function
-    vs_refine_flag::Function
-    vs_coarsen_flag::Function 
+    static_vs_refine_flag::Function 
     UDF()=new()
 end
 null_udf(args...;kwargs...) = false

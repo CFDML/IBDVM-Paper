@@ -48,7 +48,7 @@ function calc_solid_cell_slope!(svdata::AbstractVsData{DIM,NDF},fvdata::VS_Data{
     end
     sdf./=dx
 end
-function save_boundary_result!(ib::AbstractBoundary,ps_data,solid_neighbor::SolidNeighbor{DIM,NDF},boundary_results,amr::AMR{DIM,NDF}) where{DIM,NDF}
+function save_boundary_result!(ib::AbstractBoundary,ps_data,solid_neighbor::SolidNeighbor{DIM,NDF},boundary_results,amr::AMR{DIM,NDF};path="") where{DIM,NDF}
     global_data = amr.global_data
     vs_data = ps_data.vs_data
     solid_cell = solid_neighbor.solid_cell;s_vs_data = solid_cell.vs_data
@@ -81,11 +81,11 @@ function save_boundary_result!(ib::AbstractBoundary,ps_data,solid_neighbor::Soli
     push!(boundary_results[ps_data.bound_enc].midpoints,aux_point)
     push!(boundary_results[ps_data.bound_enc].normal,n)
     push!(boundary_results[ps_data.bound_enc].ps_solutions,Boundary_PS_Solution(aux_prim,aux_qf,aux_p))
-    dir_path = "./boundary_vs"
+    dir_path = isempty(path) ? "./boundary_vs" : path*"/boundary_vs"
     !isdir(dir_path) && mkpath(dir_path)
     if NDF==2
         @suppress write_vs_VTK(aux_df,vs_data,amr,dir_path*"/"*string(ps_data.midpoint)*string(n),["h","b"],fieldvalues_fn)
-    elseif NDF==3
+    elseif NDF==1
         @suppress write_vs_VTK(aux_df,vs_data,amr,dir_path*"/"*string(ps_data.midpoint)*string(n),["df"],fieldvalues_fn)
     end
 end

@@ -21,3 +21,4 @@ Kn = 0.03
 μᵣ = 5.0*√π/16.0*0.03
 static_ps_refine_flag = Main.shock_wave_region
 static_vs_refine_flag = Main.vs_refine_region
+# vtk_celltype = Voxel

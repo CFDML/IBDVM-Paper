@@ -25,7 +25,7 @@ function vs_refine_region(midpoint;kwargs...)
     Ma = 3.834
     Ts = 1.0+(5/3-1)*0.5*Ma^2
     U_av = [0.5*Ma*√(5/6),0.,0.]
-    sn = sign(U_av-midpoint)
+    sn = sign.(U_av-midpoint)
     midpoint_new = midpoint+0.25*du.*sn
     flag1 = level<refine_level-1;flag2 = level<refine_level
     for i in 1:DIM
