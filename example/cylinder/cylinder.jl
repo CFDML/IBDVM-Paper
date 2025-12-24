@@ -1,8 +1,8 @@
 using KitAMR,MPI
 include("./cylinder_udf.jl")
 MPI.Init()
-config = KitAMR.read_config("./example/cylinder/configure_cylinder_nonupwind.txt")
-# config = KitAMR.read_config("./example/cylinder/configure_cylinder.txt")
+# config = KitAMR.read_config("./example/cylinder/configure_cylinder_nonupwind.txt")
+config = KitAMR.read_config("./example/cylinder/configure_cylinder.txt")
 ps4est,amr = KitAMR.init(config);
 KitAMR.listen_for_save!()
 max_sim_time = 20.
