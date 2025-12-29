@@ -318,7 +318,6 @@ function save_result(ps4est::Ptr{p4est_t},amr::AMR{DIM,NDF};dir_path="") where{D
     trees = amr.field.trees.data
     config = amr.global_data.config
     index = 1
-    # tp1 = [-1.68603,0.05709202822871219];tp2 = [-1.64953,0.05709202822871219]
     for i in eachindex(trees)
         for j in eachindex(trees[i])
             ps_data = trees[i][j]
@@ -330,9 +329,20 @@ function save_result(ps4est::Ptr{p4est_t},amr::AMR{DIM,NDF};dir_path="") where{D
     solution = Solution(ps_solution)
     rank = MPI.Comm_rank(MPI.COMM_WORLD)
     result = Result(solution,MeshInfo(neighbor_nums))
-    MPI.Barrier(MPI.COMM_WORLD)
     if isempty(dir_path)
-        dir_path = "./result"*Dates.format(now(), "yyyy-mm-dd_HH-MM")*"/"
+        if MPI.Comm_rank(MPI.COMM_WORLD)==0
+            dir_path = "./result"*Dates.format(now(), "yyyy-mm-dd_HH-MM")*"/"
+            path_v = collect(dir_path)
+            pl = length(path_v)
+            MPI.Bcast!([pl],0,MPI.COMM_WORLD)
+            MPI.Bcast!(path_v,0,MPI.COMM_WORLD)
+        else
+            pl = [0]
+            MPI.Bcast!(pl,0,MPI.COMM_WORLD)
+            path_v = Vector{Char}(undef,first(pl))
+            MPI.Bcast!(path_v,0,MPI.COMM_WORLD)
+            dir_path = String(path_v)
+        end
     else
         dir_path = "./"*dir_path*"/"
     end
@@ -377,7 +387,19 @@ function save_result(ps4est::Ptr{p8est_t},amr::AMR{DIM,NDF};dir_path="") where{D
     rank = MPI.Comm_rank(MPI.COMM_WORLD)
     result = Result(solution,MeshInfo(Vector{Int}[]))
     if isempty(dir_path)
-        dir_path = "./result"*Dates.format(now(), "yyyy-mm-dd_HH-MM")*"/"
+        if MPI.Comm_rank(MPI.COMM_WORLD)==0
+            dir_path = "./result"*Dates.format(now(), "yyyy-mm-dd_HH-MM")*"/"
+            path_v = collect(dir_path)
+            pl = length(path_v)
+            MPI.Bcast!([pl],0,MPI.COMM_WORLD)
+            MPI.Bcast!(path_v,0,MPI.COMM_WORLD)
+        else
+            pl = [0]
+            MPI.Bcast!(pl,0,MPI.COMM_WORLD)
+            path_v = Vector{Char}(undef,first(pl))
+            MPI.Bcast!(path_v,0,MPI.COMM_WORLD)
+            dir_path = String(path_v)
+        end
     else
         dir_path = "./"*dir_path*"/"
     end
@@ -708,11 +730,18 @@ end
 function save_boundary_result(dir_path::String,amr::AMR{DIM,NDF}) where{DIM,NDF}
     ibs = amr.global_data.config.IB
     boundary_results = [Boundary_Solution(Vector{Float64}[],Vector{Float64}[],Boundary_PS_Solution[]) for _ in eachindex(ibs)]
+    for i in eachindex(ibs)
+        if MPI.Comm_rank(MPI.COMM_WORLD)==0
+            vs_dir_path = dir_path*"/boundary_vs_"*string(i)
+            !isdir(vs_dir_path) && mkpath(vs_dir_path)
+        end
+    end
+    MPI.Barrier(MPI.COMM_WORLD)
     for tree in amr.field.trees.data
         for ps_data in tree
             (isa(ps_data,InsideSolidData)||ps_data.bound_enc<=0)&&continue
             ib = ibs[ps_data.bound_enc]
-            save_boundary_result!(ib,ps_data,boundary_results,amr)
+            save_boundary_result!(ib,ps_data,boundary_results,amr;dir_path = dir_path*"/boundary_vs_"*string(ps_data.bound_enc))
         end
     end
     rank = MPI.Comm_rank(MPI.COMM_WORLD)
