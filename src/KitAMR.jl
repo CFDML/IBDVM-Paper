@@ -47,7 +47,6 @@ include("partition.jl")
 include("slope.jl")
 include("flux/flux.jl")
 include("iterate.jl")
-# include("../example/cylinder/iterate_nonupwind.jl")
 include("finalize.jl")
 
 # const np = Ref{Py}()

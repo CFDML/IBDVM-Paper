@@ -29,8 +29,9 @@ function vs_refine_region(midpoint;kwargs...)
     midpoint_new = midpoint+0.25*du.*sn
     flag1 = level<refine_level-1;flag2 = level<refine_level
     for i in 1:DIM
-        flag1 = flag1&&midpoint_new[i]>U_av[i]-2.0*sqrt(Ts)&&midpoint_new[i]<U_av[i]+2.0*sqrt(Ts)
-        flag2 = flag2&&midpoint_new[i]>U_av[i]-sqrt(Ts)&&midpoint_new[i]<U_av[i]+sqrt(Ts)
+        flag1 = flag1&&midpoint_new[i]>U_av[i]-1.8*sqrt(Ts)&&midpoint_new[i]<U_av[i]+1.8*sqrt(Ts)
+        flag2 = flag2&&midpoint_new[i]>U_av[i]-1.0*sqrt(Ts)&&midpoint_new[i]<U_av[i]+1.0*sqrt(Ts)
+        flag2 = false
     end
     return flag1||flag2
 end

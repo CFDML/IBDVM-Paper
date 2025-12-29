@@ -267,7 +267,7 @@ function calc_normal(p1,p2,s1,s2) # Calculate the unit normal vector of the vect
     end
     return n
 end
-function find_horizontal_intersection(s_midpoint, f_midpoint, points)
+function find_horizontal_intersection_2D(s_midpoint, f_midpoint, points)
     n = length(points)
     x_seg_min, x_seg_max = minmax(s_midpoint[1], f_midpoint[1])
     y0 = s_midpoint[2]
@@ -300,7 +300,40 @@ function find_horizontal_intersection(s_midpoint, f_midpoint, points)
     return Float64[],Float64[]
 end
 
-function find_vertical_intersection(s_midpoint, f_midpoint, points)
+function find_horizontal_intersection_3D(s_midpoint, f_midpoint, points)
+    n = length(points)
+    x_seg_min, x_seg_max = minmax(s_midpoint[1], f_midpoint[1])
+    y0 = s_midpoint[2]; z0 = s_midpoint[3]
+    for i in 1:n
+        p1 = points[i]
+        p2 = points[i%n + 1]
+        x1, y1, z1 = p1
+        x2, y2, z2 = p2
+        if ((y1 ≤ y0 ≤ y2) || (y2 ≤ y0 ≤ y1))&&((z1 ≤ z0 ≤ z2) || (z2 ≤ z0 ≤ z1))
+            t = (y0 - y1) / (y2 - y1)
+            if 0 < t < 1
+                x_intersect = x1 + t * (x2 - x1)
+                if x_seg_min ≤ x_intersect ≤ x_seg_max
+                    return [x_intersect, y0],calc_normal(s_midpoint, f_midpoint, p1, p2)
+                end
+            elseif t==1
+                x_intersect = x1 + t * (x2 - x1)
+                if x_seg_min ≤ x_intersect ≤ x_seg_max
+                    p3 = points[i%n+2]
+                    n1 = calc_normal(s_midpoint, f_midpoint, p1, p2)
+                    n2 = calc_normal(s_midpoint, f_midpoint, p2, p3)
+                    n0 = n1+n2;n0/=norm(n0)
+                    return [x_intersect, y0],n0
+                end
+            end
+        end
+    end
+    @show s_midpoint f_midpoint
+    throw("Intersect error!")
+    return Float64[],Float64[]
+end
+
+function find_vertical_intersection_2D(s_midpoint, f_midpoint, points)
     n = length(points)
     y_seg_min, y_seg_max = minmax(s_midpoint[2], f_midpoint[2])
     x0 = s_midpoint[1]
@@ -333,7 +366,40 @@ function find_vertical_intersection(s_midpoint, f_midpoint, points)
     return Float64[],Float64[]
 end
 
-function find_intersections(s_midpoint, f_midpoint, closed_curve)
+function find_transverse_intersection_3D(s_midpoint, f_midpoint, points)
+    n = length(points)
+    z_seg_min, z_seg_max = minmax(s_midpoint[3], f_midpoint[3])
+    x0 = s_midpoint[1]; y0 = 
+    for i in 1:n
+        p1 = points[i]
+        p2 = points[i%n + 1]
+        x1, y1 = p1
+        x2, y2 = p2
+        if (x1 ≤ x0 ≤ x2) || (x2 ≤ x0 ≤ x1)
+            t = (x0 - x1) / (x2 - x1)
+            if 0 < t < 1
+                y_intersect = y1 + t * (y2 - y1)
+                if y_seg_min ≤ y_intersect ≤ y_seg_max
+                    return [x0, y_intersect],calc_normal(s_midpoint, f_midpoint, p1, p2)
+                end
+            elseif t==1
+                y_intersect = y1 + t * (y2 - y1)
+                if y_seg_min ≤ y_intersect ≤ y_seg_max
+                    p3 = points[i%n+2]
+                    n1 = calc_normal(s_midpoint, f_midpoint, p1, p2)
+                    n2 = calc_normal(s_midpoint, f_midpoint, p2, p3)
+                    n0 = n1+n2;n0/=norm(n0)
+                    return [x0, y_intersect],n0
+                end
+            end
+        end
+    end
+    @show s_midpoint f_midpoint
+    throw("Intersect error!")
+    return Float64[],Float64[]
+end
+
+function find_intersections_2D(s_midpoint, f_midpoint, closed_curve)
     x1, y1 = s_midpoint
     x2, y2 = f_midpoint
     if abs(y1-y2)<EPS
@@ -345,6 +411,17 @@ function find_intersections(s_midpoint, f_midpoint, closed_curve)
         throw("Horizontal or vertical line segment is expected!")
     end
 end
+function find_intersections_3D(s_midpoint, f_midpoint, closed_curve)
+    x1, y1, z1 = s_midpoint
+    x2, y2, z2 = f_midpoint
+    if abs(y1-y2)<EPS && abs(z1-z2)<EPS
+        return find_horizontal_intersection(s_midpoint, f_midpoint, closed_curve)
+    elseif abs(x1-x2)<EPS && abs(z1-z2)<EPS
+        return find_vertical_intersection(s_midpoint, f_midpoint, closed_curve)
+    else
+        return find_transverse_intersection(s_midpoint,f_midpoint,closed_curve)
+    end
+end
 function fieldvalues_fn(vs_data,aux_df)
     NDF = typeof(vs_data).parameters[2]
     return [aux_df[:,i] for i in 1:NDF]
@@ -353,35 +430,17 @@ function fieldvalues_fn(vs_data)
     NDF = typeof(vs_data).parameters[2]
     return [vs_data.df[:,i] for i in 1:NDF]
 end
-
-function cut_cube_CA(n::Vector{Float64})
-    A = zeros(2);C = zeros(2,3)
+function cut_cube_rotate(n::Vector{Float64})
+    C = zeros(2,3)
     e1 = [1.,0.,0.]
     e1 = cross(n,e1);e1./=norm(e1)
     e2 = cross(n,e1);e2./=norm(e2)
     if dot(cross(e1,e2),n)>0
         C[1,:].=e1;C[2,:].=e2
-        A[1]=dot(e1,n);A[2]=dot(e2,n)
     else
         C[2,:].=e1;C[1,:].=e2
-        A[2]=dot(e1,n);A[1]=dot(e2,n)
     end
-    return C,A/3.0
-end
-function Volume_Flux(points::AbstractMatrix{Float64},A::Vector{Float64}) # Calculate the flux (x,y,z)/3 through arbitrary polygon to evaluate the volume of an arbitrary polyhedron.
-    # points: The sorted vertices of the polygon.
-    # A: The preconfigured coefficient
-    H = 0.
-    N = size(points,2)
-    for i in axes(points,2)
-        dx,dy = @views points[:,(i)%N+1]-points[:,i]
-        x,y = @views points[:,i]
-        C0 = x*dy*(0.5*A[1]*x+A[2]*y)
-        C1 = dy*(x*dy*A[2]+dx*(A[1]*x+A[2]*y))
-        C2 = dx*dy*(0.5*dx*A[1]+dy*A[2])
-        H+=C0+0.5*C1+C2/3.0
-    end
-    return H
+    return C
 end
 
 """
@@ -409,18 +468,17 @@ function Vertical_Volume_Flux(points::AbstractVector{Vector{Float64}},midpoint::
     end
     return H
 end
-function cut_cube(n::Vector{Float64},C::Matrix{Float64},A::Vector{Float64},midpoint::Vector{Float64},vertices::Matrix{Float64}) # 3.627 μs (215 allocations: 8.45 KiB). Acceptable?
+function cut_cube(n::Vector{Float64},C::Matrix{Float64},midpoint::Vector{Float64},ddu::Vector{Float64},vertices::Matrix{Float64}) # 3.627 μs (215 allocations: 8.45 KiB). Acceptable?
     vltable = [[1,2],[3,4],[7,8],[5,6],[1,3],[2,4],[6,8],[5,7],[1,5],[2,6],[4,8],[3,7]] # vertices-edges table
     points = Vector{Vector{Float64}}(undef,6);index = 1
     dirs = permutedims(vertices)*n
     for i in eachindex(vltable)
-        flag = dirs[vltable[i][1]]*dirs[vltable[i][2]]
+        flag = dirs[vltable[i][1]]*dirs[vltable[i][2]] # flag==0: cut any end of the edge; flag<0: cut the edge; flag>0: not cut the edge
         if abs(flag)<EPS
             if cld(i,4)==1 # avoid redundancy
                 if abs(dirs[vltable[i][1]])<EPS # end A intersects
                     points[index] = vertices[:,vltable[i][1]];index+=1
-                end
-                if abs(dirs[vltable[i][2]])<EPS # end B intersects
+                else # end B intersects
                     points[index] = vertices[:,vltable[i][2]];index+=1
                 end
             end
@@ -434,14 +492,14 @@ function cut_cube(n::Vector{Float64},C::Matrix{Float64},A::Vector{Float64},midpo
     index<4&&return false,0.,0.
     points = points[1:index-1]
     posid = findall(x->x>EPS,dirs)
-    pos = length(posid)<4 ? true : false
+    pos = length(posid)<4 ? true : false # H represents solid?
     if any(x->abs(x)<EPS,n) # Simple case
         dir = findfirst(x->abs(x)<EPS,n) 
-        pid = findall(x->abs(x[dir]-vertices[dir])<EPS,points)
+        pid = findall(x->abs(x[dir]-vertices[dir])<EPS,points) # vertices[dir]: the dir-th component of the first vertex
         if pos
-            vid = findall(x->abs(x[dir]-vertices[dir])<EPS&&dot(x,n)>EPS,eachcol(vertices))
+            vid = findall(x->abs(x[dir]-vertices[dir])<EPS&&dot(x,n)>EPS,eachcol(vertices)) # all vertices share the same face with the first one, but not cut by the boundary face
         else
-            vid = findall(x->abs(x[dir]-vertices[dir])<EPS&&dot(x,n)<-EPS,eachcol(vertices))
+            vid = findall(x->abs(x[dir]-vertices[dir])<EPS&&dot(x,n)<-EPS,eachcol(vertices)) # all vertices share the same face with the first one, but not cut by the boundary face
         end
         A = hcat(vertices[:,vid],points[pid]...)
         center = vec(mean(A,dims=2))
@@ -462,7 +520,18 @@ function cut_cube(n::Vector{Float64},C::Matrix{Float64},A::Vector{Float64},midpo
         center = vec(mean(local_points,dims=2))
         phi=@views [atan(x[2]-center[2],x[1]-center[1]) for x in eachcol(local_points)]
         id = sortperm(phi)
-        @views H = pos ? Volume_Flux(local_points[:,id],A) : -Volume_Flux(local_points[:,id],A)
+        if length(posid)==4 # isolated vertical face
+            centers = @views sum(vertices[:,posid],dims = 2)./4.0
+            dir = findfirst(i->abs(centers[i]-midpoint[i])≈0.5*ddu[i],1:3)
+            if isnothing(dir)
+                H = 0.
+            else
+                id1 = dir%3+1;id2 = (dir+1)%3+1
+                H = pos ? sign(centers[dir]-midpoint[dir])*centers[dir]*ddu[id1]*ddu[id2]/3.0 : -sign(centers[dir]-midpoint[dir])*(2.0*midpoint[dir]-centers[dir])*ddu[id1]*ddu[id2]/3.0
+            end
+        else
+            H = 0.
+        end
         if pos
             @views H+=Vertical_Volume_Flux(points[id],midpoint,vertices[:,posid])
             return true,8*prod(midpoint-@view(vertices[:,1]))-H,H # gas first

@@ -389,7 +389,7 @@ function initialize_cutted_velocity_cell(n::Vector{Float64},vs_data::VS_Data{3},
         global_data.config.vs_trees_num[i] for i in 1:3]
     vertices = zeros(3,8)
     index = Int[];solid_weights = Float64[];gas_weights = Float64[]
-    C,A = cut_cube_CA(n)
+    C = cut_cube_rotate(n)
     for i in 1:vs_data.vs_num
         ddu = du./2^(vs_data.level[i])
         midpoint = vs_data.midpoint[i,:]
@@ -397,7 +397,7 @@ function initialize_cutted_velocity_cell(n::Vector{Float64},vs_data::VS_Data{3},
         for j in axes(vertices,2)
             vertices[:,j] .= 0.5*ANTIVT[3][j].*ddu+midpoint
         end
-        flag,gas_weight,solid_weight = cut_cube(n,C,A,midpoint,vertices)
+        flag,gas_weight,solid_weight = cut_cube(n,C,midpoint,ddu,vertices)
         if flag
             push!(index,i);push!(solid_weights,solid_weight);push!(gas_weights,gas_weight)
         end
